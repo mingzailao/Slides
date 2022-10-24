@@ -109,7 +109,7 @@ University of California, San Diego
 
  ## Overview
 <img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/LbHFmG.png" alt="" style="object-fit: scale-down">
-</div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+</div></script></section></section><section ><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
 </div>
@@ -120,7 +120,7 @@ University of California, San Diego
 
 </div>
 
- **Kernel Regression**
+ ## **Kernel Regression**
 ****
 - Training Dataset : `$\{(x_i,y_i)\}_{i=1}^n$`
 `$$\hat{f}(x) = \sum_{i=1}(K^{-1}y)_ik(x_i,x)$$`
@@ -134,7 +134,7 @@ University of California, San Diego
 
 </div>
 
- **Approximating Deep Networks with Kernel Regression**
+ ## **Approximating Deep Networks with Kernel Regression**
 ****
 
 - `$f$` :  fully-connected neural network with weight `$\theta$` initialized from Gaussian Distribution `$\mathcal{N}$`
@@ -147,7 +147,7 @@ University of California, San Diego
 
 </div>
 
- Appriximating Deep Networks with Kernel Regression
+ ## **Appriximating Deep Networks with Kernel Regression**
 ****
 - Consider a network trained with 
   - an `$L_{2}$` norm constraint;
@@ -161,18 +161,44 @@ University of California, San Diego
 
 </div>
 
- Appriximating Deep Networks with Kernel Regression
+ ## **Appriximating Deep Networks with Kernel Regression**
 ****
-- Consider training error `$\hat{y}_{\texttt{train}}^{(t)}-y$`
-  - NTK matrix `$\textbf{K}$` is PSD:
-    - `$\textbf{K} = \textbf{Q}\Lambda\textbf{Q}^T$`, `$\textbf{Q}$`: orthogonal; `$\Lambda$`: diagonal matrix whose entries are the eigenvalues `$\lambda_{i}\ge 0 $` of `$\textbf{K}$`
-  - `$e^{-\eta \textbf{K}t} = \textbf{Q}e^{-\eta\Lambda t}\textbf{Q}^{T}$`
-  `$$\textbf{Q}^T(\hat{y}_{\texttt{train}}^{(t)}-y)\approx \textbf{Q}^T((I-e^{-\eta \textbf{K} t})y-y)= -e^{-\eta \Lambda t}\textbf{Q}^Ty$$`
+- Consider training error `$\hat{y}_{\texttt{train}}^{(t)}-y$`, NTK matrix `$\textbf{K}$` is PSD:
+	- `$\textbf{K} = \textbf{Q}\Lambda\textbf{Q}^T$`, `$\textbf{Q}$`: orthogonal; `$\Lambda$`: diagonal matrix whose entries are the eigenvalues `$\lambda_{i}\ge 0 $` of `$\textbf{K}$`
+
+`$$e^{-\eta \textbf{K}t} = \textbf{Q}e^{-\eta\Lambda t}\textbf{Q}^{T}$$`
+
+`$$\textbf{Q}^T(\hat{y}_{\texttt{train}}^{(t)}-y)\approx \textbf{Q}^T((I-e^{-\eta \textbf{K} t})y-y)= -e^{-\eta \Lambda t}\textbf{Q}^Ty$$`
+
+
+This Means that if we consider training convergence in the eigenbasis of the NTK, the `$i^{th}$` component of the absolute error `$\textbf{Q}^T(\hat{y}_{\texttt{train}}^{(t)}-y)$` will decay approximately exponentally at the rate `$\eta\lambda_i$`.
+
+Components of the target function that correspond to kernel eigenvectors with larger eigenvalues will be learned faster.
+
+For a conventional MLP, the eigenvalues of the NTK decay rapidly.  This results in extremely slow convergence to the high frequency components of the target function
+</div></script></section></section><section ><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+# Fourier Features for a Tunable Stationary Neural Tangent Kernel
 </div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
+</div>
+
+ ## Different with Common Machine Learning
+****
+
+Task|Machine Learning | Low-dimensional Regression
+----|------------ | ------------
+Input-dimension  | High-Dimensional  | Low-Dimensional 
+Input Sparsity|High Sparsity | Low Sparsity(Dense coordinates in a subset of `$\mathbb{R}^d$`)
+
+-
+</div></script></section></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
 <img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/LubRMQ.png" alt="" style="object-fit: scale-down">
-</div></script></section></section><section  data-markdown><script type="text/template"></script></section></div>
+</div></script></section><section  data-markdown><script type="text/template"></script></section></div>
     </div>
 
     <script src="dist/reveal.js"></script>
