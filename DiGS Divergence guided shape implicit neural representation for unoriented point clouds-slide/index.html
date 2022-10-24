@@ -87,15 +87,17 @@
       <div class="slides"><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
-**Fourier Features Let Networks Learn High Frequency Functions in Low Dimensional Domains**
+**DiGS : Divergence guided shape implicit neural representation for unoriented point clouds**
 
-Matthew Tancik, Pratul P. Srinivasan, Ben Mildenhall, Sara Fridovich-Keil, Nithin Raghavan, Utkarsh Singhal, Ravi Ramamoorthi, Jonathan T. Barron, Ren Ng
+CVPR 2022
 
-University of California Berkeley
+Yizhak Ben-Shabat, Chamin Hewa Koneputugodage, Stephen Gould
 
-Google Research 
+[Technion Israel Institute of Technology]()
 
-University of California, San Diego
+[The Australian National University]()
+
+[Australian Centre for Robotic Vision]()
 </div></script></section><section ><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
@@ -107,72 +109,51 @@ University of California, San Diego
 
 </div>
 
- ## Overview
-<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/LbHFmG.png" alt="" style="object-fit: scale-down">
+ ## Motivation in 2D Example
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/aCBlhX.png" alt="" style="object-fit: scale-down">
+
+
+
+
+- The gradient vector field of the signed distance function has low divergence nearly everywhere
 </div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
 </div>
 
- # Background
+ ## Contributions
+1. Introducing divergence guided shape INR learning which incorp-orates soft second order derivative constraints to guide the INR learning process.
+2. Deriving two novel geometric initialization methods for sinusoidal-based shape INR networks that lead to better representations.
+</div></script></section></section><section ><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Overview
 </div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
 </div>
 
- **Kernel Regression**
-****
-- Training Dataset : `$\{(x_i,y_i)\}_{i=1}^n$`
-`$$\hat{f}(x) = \sum_{i=1}(K^{-1}y)_ik(x_i,x)$$`
-- `$K$` : `$n\times n$` kernel matrix (Gram) matrix with entries `$K_{ij} = k(x_i,x_j)$`
-- `$k$` : symmetric postionve semidefinite(PSD) kernel function which represents the "similarity" between two input vectors.
+ ## Geometric Initialization(MFGI)
+- Initialize to a sphere, biasing the function to start with an SDF that is positive away from the object and negative in the centre of the object’s bounding box.
+
+Performance
 
 
-	The Kernel Regression estimate at any point `$x$` can be thought of as a weighted sum of training labels `$y_i$` using the similarity between the corresponding `$x_i$` and `$x$`.
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/F1z8I2.png" alt="" style="object-fit: scale-down">
 </div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
 <div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
 
 </div>
 
- **Approximating Deep Networks with Kernel Regression**
-****
+ ## Geometric Initialization(MFGI)
 
-- `$f$` :  fully-connected neural network with weight `$\theta$` initialized from Gaussian Distribution `$\mathcal{N}$`
+workFlow
 
-	When the width of the layers in `$f$` tends to infinity and the learning rate for SGD tends to zero
-- The function `$f(x;\theta)$` converges over the course of training to the kernel regression solution using the neural tangent kernel(NTK), defined as :
-	`$$k_{NTK}(x_i,x_j) = \mathbb{E}_{\theta\sim \mathcal{N}}\left<\frac{\partial f(x_i;\theta)}{\partial \theta},\frac{\partial f(x_j;\theta)}{\partial \theta}\right>$$`
-</div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
-<div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
-
-</div>
-
- Appriximating Deep Networks with Kernel Regression
-****
-- Consider a network trained with 
-  - an `$L_{2}$` norm constraint;
-  - a learning rate `$\eta$`,
-  - the network's weights are initialized such that the output of the network at the initialization is close to zero
-
-  Under asymptotic conditions, the network's output for any data `$X_{\texttt{test}}$` after `$t$` training iterations can be approximated as :
-  `$$\hat{y}^{(t)}\approx \textbf{K}_{\texttt{test}}\textbf{K}^{-1}(\textbf{I}-e^{-\eta \textbf{K}t}) $$`
-</div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
-<div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
-
-</div>
-
- Appriximating Deep Networks with Kernel Regression
-****
-- Consider training error `$\hat{y}_{\texttt{train}}^{(t)}-y$`
-  - NTK matrix `$\textbf{K}$` is PSD:
-    - `$\textbf{K} = \textbf{Q}\Lambda\textbf{Q}^T$`, `$\textbf{Q}$`: orthogonal; `$\Lambda$`: diagonal matrix whose entries are the eigenvalues `$\lambda_{i}\ge 0 $` of `$\textbf{K}$`
-  - `$e^{-\eta \textbf{K}t} = \textbf{Q}e^{-\eta\Lambda t}\textbf{Q}^{T}$`
-  `$$\textbf{Q}^T(\hat{y}_{\texttt{train}}^{(t)}-y)\approx \textbf{Q}^T((I-e^{-\eta \textbf{K} t})y-y)= -e^{-\eta \Lambda t}\textbf{Q}^Ty$$`
-</div></script></section><section data-markdown><script type="text/template"><!-- .slide: class="drop" -->
-<div class="" style="position: absolute; left: 0px; top: 0px; height: 700px; width: 960px; min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
-
-<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/LubRMQ.png" alt="" style="object-fit: scale-down">
-</div></script></section></section><section  data-markdown><script type="text/template"></script></section></div>
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/gQWLtA.png" alt="" style="object-fit: scale-down">
+</div></script></section><section data-markdown><script type="text/template"></script></section></section></div>
     </div>
 
     <script src="dist/reveal.js"></script>
@@ -287,7 +268,7 @@ University of California, San Diego
       // options from URL query string
       var queryOptions = Reveal().getQueryHash() || {};
 
-      var options = extend(defaultOptions, {"width":960,"height":700,"margin":0.04,"controls":true,"progress":true,"slideNumber":true,"center":false,"autoPlayMedia":true,"preloadIframes":true,"transition":"slide","transitionSpeed":"normal"}, queryOptions);
+      var options = extend(defaultOptions, {"width":960,"height":700,"margin":0.04,"controls":true,"progress":true,"slideNumber":true,"center":false,"touch":true,"autoPlayMedia":true,"preloadIframes":true,"transition":"slide","transitionSpeed":"normal"}, queryOptions);
     </script>
 
     <script>
