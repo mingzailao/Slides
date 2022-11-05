@@ -1,3 +1,3 @@
-Code: Just Open index.html
+Code: Just Open main.html
 
-Or Visit [Website](https://mingzailao.github.io/Slides/Bezier/)
+Or Visit [Website](https://mingzailao.github.io/Slides/Bezier/main.html)
