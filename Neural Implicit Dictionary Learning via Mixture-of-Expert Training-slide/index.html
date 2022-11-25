@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title></title>
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/league.css" id="theme" />
+    <link rel="stylesheet" href="css/mattropolis.css" />
+	<link rel="stylesheet" href="css/layout.css" />
+	<link rel="stylesheet" href="plugin/customcontrols/style.css">
+	<link rel="stylesheet" href="plugin/chalkboard/style.css">
+
+
+    <script defer src="dist/fontawesome/all.min.js"></script>
+
+	<script type="text/javascript">
+		var forgetPop = true;
+		function onPopState(event) {
+			if(forgetPop){
+				forgetPop = false;
+			} else {
+				parent.postMessage(event.target.location.href, "app://obsidian.md");
+			}
+        }
+		window.onpopstate = onPopState;
+		window.onmessage = event => {
+			if(event.data == "reload"){
+				window.document.location.reload();
+			}
+			forgetPop = true;
+		}
+
+		function fitElements(){
+			const itemsToFit = document.getElementsByClassName('fitText');
+			for (const item in itemsToFit) {
+				if (Object.hasOwnProperty.call(itemsToFit, item)) {
+					var element = itemsToFit[item];
+					fitElement(element,1, 1000);
+					element.classList.remove('fitText');
+				}
+			}
+		}
+
+		function fitElement(element, start, end){
+
+			let size = (end + start) / 2;
+			element.style.fontSize = `${size}px`;
+
+			if(Math.abs(start - end) < 1){
+				while(element.scrollHeight > element.offsetHeight){
+					size--;
+					element.style.fontSize = `${size}px`;
+				}
+				return;
+			}
+
+			if(element.scrollHeight > element.offsetHeight){
+				fitElement(element, start, size);
+			} else {
+				fitElement(element, size, end);
+			}		
+		}
+
+
+		document.onreadystatechange = () => {
+			fitElements();
+			if (document.readyState === 'complete') {
+				if (window.location.href.indexOf("?export") != -1){
+					parent.postMessage(event.target.location.href, "app://obsidian.md");
+				}
+				if (window.location.href.indexOf("print-pdf") != -1){
+					let stateCheck = setInterval(() => {
+						clearInterval(stateCheck);
+						window.print();
+					}, 250);
+				}
+			}
+	};
+
+
+        </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ **Neural Implicit Dictionary Learning via Mixture-of-Expert Training**
+****
+Peihao Wang, Zhiwen Fan, Tianlong Chen, Zhangyang Wang
+
+
+University of Texas at Austin
+
+ICML 2022
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Introduction
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+One signigicant drawback of INR 
+
+</div>
+</div>
+<div class="callout-content">
+
+<font size=18> Acquring an INR usually requiresa *tedious per-scene* training of a neural networks on *dense* measurement</font>
+
+- For a new scene, we can not adopt any prior to train the INR
+
+</div>
+</div>
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Solution
+
+</div>
+</div>
+<div class="callout-content">
+
+- Meta-Learning : Using meta-learning method to train on a large-dataset to get a better initialization.
+
+- But, Not Good enough.
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ 
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Contributions
+
+</div>
+</div>
+<div class="callout-content">
+
+Design a unified INR framework that simultaneously achieves optimization and data efficiency called **NID**(Neural Implicit Dictionary).
+
+- Transfer prior across scenes.
+
+-  Accelerate per-scene neural encoding.
+
+- Boosting performance.
+
+NID is parameterized by a group of small neural networks that acts as continuous function basis to span the neural implicit function space. The dictionary learning is efficiently accomplished via MoE training.
+
+Conduct extensive experiments to validate the effectiveness of NID
+
+- Training Efficiency: 100x faster convergence speed for image regression task
+
+- Data Efficiency: Reconstuct SDF with 98% less point samples
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Preliminaries
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Compressed Sensing
+
+</div>
+</div>
+<div class="callout-content">
+
+-在经典的信号处理中,信号被离散表示为向量的形式, 如何从观测`$y\in\mathbb{R}^M$` 中恢复原始信号 `$x\in \mathbb{R}^N(M<<N)$`?
+
+`$$y = Ax+\eta$$`
+
+对于这样一个欠定线性系统(underdetermined linear system)来说,压缩感知提供了一个有效的方法: 假设信号 `$x$` 能够用空间中的一组基来表出:
+
+`$$\Psi = [\psi_1 \cdots \psi_K]\in \mathbb{R}^{N\times K}$$`
+
+那么可以通过优化
+
+`$$\underset{\alpha}{\arg \min }||\boldsymbol{\alpha}||_0 \text { subject to }||\boldsymbol{y}-\boldsymbol{A} \boldsymbol{\Psi} \boldsymbol{\alpha}||_2<\varepsilon$$`来求解系数.
+
+- 其中, `$\alpha\in \mathbb{R}^K$` 是稀疏编码系数, `$||\eta||<\epsilon$` 是噪声水平上界
+
+-  可以将`$l_0$` 替换成`$l_1$` 来获得一个凸解.
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Mixture-of-Expert Training
+
+</div>
+</div>
+<div class="callout-content">
+
+- 这种方法是通过引入一个Mixture-of-Expert(MoE) layer (包含一些专家网络作为子网络) ,然后训练一个Gating 网络来选择这些专家网络的稀疏组合.
+
+- `$G(x)$` : Gating 网络的输出
+
+- `$E_{i}(x)$` : 第`$i$` 个专家网络的输出
+
+`$$y = \sum_{i=1}^nG(x)_iE_i(x)$$`
+
+- `$n$` : 专家网络的个数 `$||G(x)||_{0}=k$`(稀疏系数)
+
+- 常用的稀疏化方法Top-K
+
+`$$G(\boldsymbol{x})=\text { Normalize }(\operatorname{TopK}(H(\boldsymbol{x}), k)) \text {, }$$`
+
+`$$\operatorname{TopK}(x, k)_i= \begin{cases}x_i & \text { if } x_i \text { is in top } k \text { elements } \\ 0 & \text { otherwise }\end{cases}$$`
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+# Method
+## Learning Implicit Function Basis
+
+`$$f(\boldsymbol{x})=\alpha_1 b_1(\boldsymbol{x})+\cdots+\alpha_n b_n(\boldsymbol{x}) \quad \forall \boldsymbol{x} \in \mathbb{R}^m$$`
+- 其中每个`$b_{i}$` 都是一个NIR 网络, 这些函数基底称谓Neural Implicit Dictionary(隐式神经字典).
+
+- 总体的损失函数
+ `$$\begin{aligned}
+&\underset{\substack{\theta_1, \cdots, \theta_n \\
+\boldsymbol{\alpha}^{(1)}, \ldots, \boldsymbol{\alpha}^{(T)}}}{\arg \min } \sum_{i=1}\sum_{j=1}^{t_i} \mathcal{L}\left(\mathcal{R}\left(f^{(i)} \mid \boldsymbol{\Omega}_j^{(i)}\right), \boldsymbol{Y}_j^{(i)}\right) \\
+&+\lambda \mathcal{P}\left(\boldsymbol{\alpha}^{(i)}, \cdots, \boldsymbol{\alpha}^{(T)}\right), \\
+&\text { subject to } f^{(i)}(\boldsymbol{x})=\sum_{j=1}\alpha_j^{(i)} b_{\theta_j}(\boldsymbol{x}) \quad \forall \boldsymbol{x} \in \mathbb{R}\end{aligned}$$`
+- 当遇到未见过的样本, 将学习到的隐函数基固定,只需要计算相应的稀疏编码去优化`$\mathcal{L}$`即可
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Training Thousands of Subnetworks with Mixture-of-Expert Layer
+
+</div>
+</div>
+<div class="callout-content">
+
+- 直接训练上千的专家自网络是一个非常低效率且冗余的方案,而且通过这种粗暴的方式往往不能在并行计算中得到很好的部署. 而MoE 方案提供可一个条件式计算框架这样可以并行的训练一个比较大的网络.
+
+- 最终通过用MoE 架构来去实现NID 的训练:
+
+- NID 中的每一个基函数都是一个MoE中的专家子网络.
+
+- 稀疏编码就是Gating网络的输出.
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Expert Networks
+
+</div>
+</div>
+<div class="callout-content">
+
+- 每个专家网络都是一个小的SIREN 或者FFM 网络, 为了降低整个MoE 的参数, 在所有的专家网络中共享了Position Embedding 和前面四层.
+
+- 对于每个专家网络在后面加了两层非共享层
+
+- 通过这样的方式使得专家网络初始的特征是共享的.
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Gating networks
+
+</div>
+</div>
+<div class="callout-content">
+
+- Encoder network: 将观测到的映射到稀疏参数.
+
+- Lookup Table: 每个样本都被Embedding成一个向量,通过专家网络去训练这个Embedding Vector.
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Experiments and Applications
+<split even>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Instant Image Regression
+
+</div>
+</div>
+<div class="callout-content">
+
+-  NID : Training on a given dataset, testing on the test dataset
+
+- FFM and SIREN: Fitting the test dataset
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Performance
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/j5M4gu.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+</split>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Initialization Comarision
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/yEJ9iG.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ ## Facial Image Inpating
+
+- 通过假设噪声在图像上是稀疏的,这样我们可以获得清晰的图像
+	
+	![](http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/AyZBH0.png)
+
+- 背景分离
+	
+	![](http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/oCgKhg.png)
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ ## CT重建
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/ktEggO.png" alt="|x700" style="width: px; height: 700px; object-fit: fill">
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/5UVcTh.png" alt="|x700" style="width: px; height: 700px; object-fit: fill">
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+## 点云重建
+
+
+> ![](http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/8ZTKSZ.png)
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+> ![](http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/niwVPh.png)
+</split>
+</div></script></section></div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/zoom/zoom.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/math/math.js"></script>
+	<script src="plugin/mermaid/mermaid.js"></script>
+	<script src="plugin/chart/chart.min.js"></script>
+	<script src="plugin/chart/plugin.js"></script>
+	<script src="plugin/menu/menu.js"></script>
+	<script src="plugin/customcontrols/plugin.js"></script>
+	<script src="plugin/chalkboard/plugin.js"></script>
+	<script src="plugin/elapsed-time-bar/elapsed-time-bar.js"></script>
+
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+	  function isLight(color) {
+		let hex = color.replace('#', '');
+
+		// convert #fff => #ffffff
+		if(hex.length == 3){
+			hex = `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`;
+		}
+
+		const c_r = parseInt(hex.substr(0, 2), 16);
+		const c_g = parseInt(hex.substr(2, 2), 16);
+		const c_b = parseInt(hex.substr(4, 2), 16);
+		const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+		return brightness > 155;
+	}
+
+	var bgColor = getComputedStyle(document.documentElement).getPropertyValue('--r-background-color').trim();
+
+	if(isLight(bgColor)){
+		document.body.classList.add('has-light-background');
+	} else {
+		document.body.classList.add('has-dark-background');
+	}
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealZoom,
+          RevealNotes,
+          RevealMath.MathJax3,
+		  RevealMermaid,
+		  RevealChart,
+		  RevealCustomControls,
+		  RevealMenu,
+		  RevealChalkboard, 
+		  ElapsedTimeBar
+        ],
+
+
+    	allottedTime: 120 * 1000,
+
+		mathjax3: {
+			mathjax: 'plugin/math/mathjax/tex-mml-chtml.js',
+		},
+		markdown: {
+		  gfm: true,
+		  mangle: true,
+		  pedantic: false,
+		  smartLists: false,
+		  smartypants: false,
+		},
+
+		customcontrols: {
+			controls: [
+				{id: 'toggle-overview',
+				title: 'Toggle overview (O)',
+				icon: '<i class="fa fa-th"></i>',
+				action: 'Reveal.toggleOverview();'
+				},
+				{ icon: '<i class="fa fa-pen-square"></i>',
+				title: 'Toggle chalkboard (B)',
+				action: 'RevealChalkboard.toggleChalkboard();'
+				},
+				{ icon: '<i class="fa fa-pen"></i>',
+				title: 'Toggle notes canvas (C)',
+				action: 'RevealChalkboard.toggleNotesCanvas();'
+				},
+			]
+		},
+		menu: {
+			loadIcons: false
+		}
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal().getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"width":2000,"height":1000,"margin":0.04,"controls":true,"progress":true,"slideNumber":true,"center":false,"touch":true,"autoPlayMedia":true,"preloadIframes":false,"transition":"slide","transitionSpeed":"normal"}, queryOptions);
+    </script>
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+
+  <!-- created with Advanced Slides -->
+</html>
