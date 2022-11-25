@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+    <title></title>
+    <link rel="stylesheet" href="dist/reveal.css" />
+    <link rel="stylesheet" href="dist/theme/league.css" id="theme" />
+    <link rel="stylesheet" href="css/mattropolis.css" />
+	<link rel="stylesheet" href="css/layout.css" />
+	<link rel="stylesheet" href="plugin/customcontrols/style.css">
+	<link rel="stylesheet" href="plugin/chalkboard/style.css">
+
+
+    <script defer src="dist/fontawesome/all.min.js"></script>
+
+	<script type="text/javascript">
+		var forgetPop = true;
+		function onPopState(event) {
+			if(forgetPop){
+				forgetPop = false;
+			} else {
+				parent.postMessage(event.target.location.href, "app://obsidian.md");
+			}
+        }
+		window.onpopstate = onPopState;
+		window.onmessage = event => {
+			if(event.data == "reload"){
+				window.document.location.reload();
+			}
+			forgetPop = true;
+		}
+
+		function fitElements(){
+			const itemsToFit = document.getElementsByClassName('fitText');
+			for (const item in itemsToFit) {
+				if (Object.hasOwnProperty.call(itemsToFit, item)) {
+					var element = itemsToFit[item];
+					fitElement(element,1, 1000);
+					element.classList.remove('fitText');
+				}
+			}
+		}
+
+		function fitElement(element, start, end){
+
+			let size = (end + start) / 2;
+			element.style.fontSize = `${size}px`;
+
+			if(Math.abs(start - end) < 1){
+				while(element.scrollHeight > element.offsetHeight){
+					size--;
+					element.style.fontSize = `${size}px`;
+				}
+				return;
+			}
+
+			if(element.scrollHeight > element.offsetHeight){
+				fitElement(element, start, size);
+			} else {
+				fitElement(element, size, end);
+			}		
+		}
+
+
+		document.onreadystatechange = () => {
+			fitElements();
+			if (document.readyState === 'complete') {
+				if (window.location.href.indexOf("?export") != -1){
+					parent.postMessage(event.target.location.href, "app://obsidian.md");
+				}
+				if (window.location.href.indexOf("print-pdf") != -1){
+					let stateCheck = setInterval(() => {
+						clearInterval(stateCheck);
+						window.print();
+					}, 250);
+				}
+			}
+	};
+
+
+        </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides"><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Implicit Neural Representations with Levels-of-Experts
+****
+Zekun Hao, Arun Mallya, Serge Belongie, Ming-Yu Liu
+
+Nvidia, Cornell University
+
+NeurIPS 2022
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Implicit Neural Representation
+
+<div class="callout callout-color4">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-question-circle" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+How to improve the representation of INR?
+
+</div>
+</div>
+<div class="callout-content">
+
+1. Make the MLP wider by increasing the dimensions of activations
+
+2. Make the MLP deeper by stacking more layers
+
+
+
+
+
+But increase the computation needed.
+
+</div>
+</div>
+
+<div class="callout callout-color-default">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-pencil-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Answer
+
+</div>
+</div>
+<div class="callout-content">
+
+- Hybrid Representation
+
+- Sparse Voxels
+
+- Decompose the space into grids
+
+
+
+Within each grid, a lightweighted MLP conditioned on the grid embedding produces local details at a scale finer than the grid resolution.
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ ## Hybrid Representation Example
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/Bo08GX.png">
+
+`$$m(enc(x,\theta);\Phi)$$`
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Problems with Hybrid Representation
+
+</div>
+</div>
+<div class="callout-content">
+
+1. The Smoothly interpolation of grid embeddings have negative impact for computation efficiency.
+
+2. The underlying signal is described by multiple disctributed features stored in a grid which limite the power of pruning, hashing, or some other applications.
+
+</div>
+</div>
+
+<split left="2" right="1">
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Contributions(Levels-of-Experts)
+
+</div>
+</div>
+<div class="callout-content">
+
+This paper introduced a new hybrid representation by storing the weights of an MLP on a multi-resolution tiled grid.
+
+- Each layer at a different depth, *level*, has a number of *experts* with their own weights matrices.
+
+- Specializing in different partitions of the input space, depending on the tiling pattern used.
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+MLP with position-dependent weight
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/AXRMFr.png" alt="|400" style="width: 400px; object-fit: fill">
+
+</div>
+</div>
+</split>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ 
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Property of the Weight Map
+
+</div>
+</div>
+<div class="callout-content">
+
+- Repeat
+
+- Different layer has different number of Experts, shows the diffent level to recover the original signals.
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Constributions
+
+</div>
+</div>
+<div class="callout-content">
+
+1. Introducing a novel hybrid implicit neural representation that is parameterized by a hierarchy of position-dependent and periodic weights
+
+2. Extensively studing the effect of various design decisions including the periodicity and hierarchy of weights, weight interpolation methods, and the use of input encodings
+
+3. Demonstrating the efficiency and representation power of this architecture on challenging tasks including high-resolution image fitting, video fitting, novel-view synthesis, and image generation
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Method
+
+<split even>
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Common MLP-base INR
+
+</div>
+</div>
+<div class="callout-content">
+
+`$$\hat{f}: \mathbf{p} \rightarrow\left(g\circ \phi \circ g^{k-1} \circ \cdots \circ \phi \circ g\circ \gamma\right)(\mathbf{p})$$`
+
+- `$\gamma$` : input mapping such as sine-cosing position encoding.
+
+- `$\phi$` : none-linear activation function
+
+- `$g^i: \mathbf{x}\rightarrow \mathbf{W}^i\mathbf{x}+\mathbf{b}^i$` : `$i^{th}$` linear layer
+
+</div>
+</div>
+
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Levels-of-Experts(LoE) Architecture
+
+</div>
+</div>
+<div class="callout-content">
+
+`$$f: \mathbf{p} \rightarrow\left(h^k(\mathbf{p}) \circ \phi \circ h^{k-1}(\mathbf{p}) \circ \cdots \circ \phi \circ h^1(\mathbf{p}) \circ \gamma\right)(\mathbf{p})$$`
+
+- Instead of regrading each `$\mathbf{W}^i$` as a single learnable matrix, Giving a Learnable Matrix Map, the activate matrix `$\mathbf{W}^i$` is dependent on the input coordinate `$\mathbf{x}$`, then, the `$g^i$` can be formulated as: `$h^i:(\mathbf{x}, \mathbf{p}) \rightarrow\psi^i(\mathbf{p}) \mathbf{x}+\mathbf{b}^i,$`
+
+</div>
+</div>
+</split>
+
+
+<div class="callout callout-color4">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-question-circle" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Construction of `$\psi$`
+
+</div>
+</div>
+<div class="callout-content">
+
+How tp Constuct the function `$\psi^i: \mathbf{p}\rightarrow \mathbf{W}$`
+
+- Gray Node
+
+- Random Node
+
+- Different \#Weights per tile
+
+- Smooth interpolation
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+<split even>
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Examples of different wieght tiling patterns
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/iUohuZ.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+1-D example
+
+</div>
+</div>
+<div class="callout-content">
+
+`$$\mathbf{W}^i=\psi^i(\mathbf{p})=\psi^i(p)=\sum_{j=0}^{n-1} B_{j, N}\left(\alpha ^ i p+\beta^i\right) \mathbf{W}_j^i$$`
+
+- `$\alpha^i,\beta^i$` : hyperparameters that adjust the scale and traslation of the grid for each layer.
+
+- `$B_{j,N}$` : the blending function that compute the blending coefficient for the `$j$`-th candidate.
+
+- For example:
+
+- Linear :
+
+- `$$B_{j, N}^{\text {linear }}(q)=\max (0,1-|(q+1-j) \bmod N-1|)$$`
+
+- Nearest:
+
+- `$$B_{j, N}^{\text {nearest }}(q)= \begin{cases}1 & \lfloor q\rfloor \bmod N=j \\ 0 & \text { otherwise }\end{cases}$$`
+
+</div>
+</div>
+
+</split>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ ## How to pick up the tiling patterns
+<split left=2 right=7>
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Different Patterns
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/W2P0Ci.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+PSNR vs training iterations curve for the 2D toy experiment
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/5Wpdaj.png" alt="1600" style="object-fit: scale-down">
+
+</div>
+</div>
+
+</split>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ # Experiment
+## Fitting  a High-Resolution Image
+<split left=2 right=3>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Performace Comparision
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/0NsFBt.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Efficiency Comparision
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/10mHtK.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+
+</split>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ ## Fitting to a Video
+<split left=2 right=4>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Performace Comparision
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/sohaeG.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Efficiency Comparision
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/t3KvnO.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+
+</split>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+ ## Novel View Synthesis
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Performance
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/qK54Gz.png" alt="|2000" style="width: 2000px; object-fit: fill">
+
+</div>
+</div>
+</div></script></section><section  data-markdown><script type="text/template"><!-- .slide: class="drop" -->
+<div class="" style="position: absolute; left: 0px; top: 0px; height: 1000px; width: 2000px; min-height: 1000px; display: flex; flex-direction: column; align-items: center; justify-content: center" absolute="true">
+
+</div>
+
+
+<div class="callout callout-color2">
+<div class="callout-title">
+<div class="callout-icon">
+
+<i class="fas fa-fire-alt" ></i>
+
+</div>
+<div class="callout-title-inner">
+
+Efficiency Comparision
+
+</div>
+</div>
+<div class="callout-content">
+
+<img src="http://fastly.jsdelivr.net/gh/mingzailao/Pic@master/uPic/ZxGobv.png" alt="" style="object-fit: scale-down">
+
+</div>
+</div>
+</div></script></section></div>
+    </div>
+
+    <script src="dist/reveal.js"></script>
+
+    <script src="plugin/markdown/markdown.js"></script>
+    <script src="plugin/highlight/highlight.js"></script>
+    <script src="plugin/zoom/zoom.js"></script>
+    <script src="plugin/notes/notes.js"></script>
+    <script src="plugin/math/math.js"></script>
+	<script src="plugin/mermaid/mermaid.js"></script>
+	<script src="plugin/chart/chart.min.js"></script>
+	<script src="plugin/chart/plugin.js"></script>
+	<script src="plugin/menu/menu.js"></script>
+	<script src="plugin/customcontrols/plugin.js"></script>
+	<script src="plugin/chalkboard/plugin.js"></script>
+	<script src="plugin/elapsed-time-bar/elapsed-time-bar.js"></script>
+
+    <script>
+      function extend() {
+        var target = {};
+        for (var i = 0; i < arguments.length; i++) {
+          var source = arguments[i];
+          for (var key in source) {
+            if (source.hasOwnProperty(key)) {
+              target[key] = source[key];
+            }
+          }
+        }
+        return target;
+      }
+
+	  function isLight(color) {
+		let hex = color.replace('#', '');
+
+		// convert #fff => #ffffff
+		if(hex.length == 3){
+			hex = `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`;
+		}
+
+		const c_r = parseInt(hex.substr(0, 2), 16);
+		const c_g = parseInt(hex.substr(2, 2), 16);
+		const c_b = parseInt(hex.substr(4, 2), 16);
+		const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
+		return brightness > 155;
+	}
+
+	var bgColor = getComputedStyle(document.documentElement).getPropertyValue('--r-background-color').trim();
+
+	if(isLight(bgColor)){
+		document.body.classList.add('has-light-background');
+	} else {
+		document.body.classList.add('has-dark-background');
+	}
+
+      // default options to init reveal.js
+      var defaultOptions = {
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+        transition: 'default', // none/fade/slide/convex/concave/zoom
+        plugins: [
+          RevealMarkdown,
+          RevealHighlight,
+          RevealZoom,
+          RevealNotes,
+          RevealMath.MathJax3,
+		  RevealMermaid,
+		  RevealChart,
+		  RevealCustomControls,
+		  RevealMenu,
+		  RevealChalkboard, 
+		  ElapsedTimeBar
+        ],
+
+
+    	allottedTime: 120 * 1000,
+
+		mathjax3: {
+			mathjax: 'plugin/math/mathjax/tex-mml-chtml.js',
+		},
+		markdown: {
+		  gfm: true,
+		  mangle: true,
+		  pedantic: false,
+		  smartLists: false,
+		  smartypants: false,
+		},
+
+		customcontrols: {
+			controls: [
+				{id: 'toggle-overview',
+				title: 'Toggle overview (O)',
+				icon: '<i class="fa fa-th"></i>',
+				action: 'Reveal.toggleOverview();'
+				},
+				{ icon: '<i class="fa fa-pen-square"></i>',
+				title: 'Toggle chalkboard (B)',
+				action: 'RevealChalkboard.toggleChalkboard();'
+				},
+				{ icon: '<i class="fa fa-pen"></i>',
+				title: 'Toggle notes canvas (C)',
+				action: 'RevealChalkboard.toggleNotesCanvas();'
+				},
+			]
+		},
+		menu: {
+			loadIcons: false
+		}
+      };
+
+      // options from URL query string
+      var queryOptions = Reveal().getQueryHash() || {};
+
+      var options = extend(defaultOptions, {"width":2000,"height":1000,"margin":0.04,"controls":true,"progress":true,"slideNumber":true,"center":false,"touch":true,"autoPlayMedia":true,"preloadIframes":false,"transition":"slide","transitionSpeed":"normal"}, queryOptions);
+    </script>
+
+    <script>
+      Reveal.initialize(options);
+    </script>
+  </body>
+
+  <!-- created with Advanced Slides -->
+</html>
